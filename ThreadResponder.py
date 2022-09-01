@@ -16,10 +16,7 @@ class ThreadResponder(commands.Cog):
         await self.send_thread_options(thread)
 
     async def send_thread_options(self, thread: discord.Thread):
-        view = discord.ui.View(timeout=None)
-        view.add_item(self.AddUsersButton())
-        view.add_item(self.PreventArchiveButton())
-        view.add_item(self.AllowArchiveButton())
+        view = self.ThreadResponseView()
         embed = discord.Embed(description='Thread Options', color=8435455)
         await thread.send(embed=embed, view=view)
 
