@@ -1,0 +1,4 @@
+__pycache__
+.vscode
+token
+thread_id_list.sqlite
