@@ -32,11 +32,11 @@ def add_thread_to_archive_prevention(thread: discord.Thread):
         cur.execute(f"INSERT OR IGNORE INTO {TABLE_NAME} VALUES (?, ?)", (thread.id, thread.guild.id))
             
 
-def remove_thread_from_archive_prevention(thread: discord.Thread):
+def remove_thread_from_archive_prevention(thread_id: int):
     with sqlite3.Connection('thread_id_list.sqlite') as con:
         cur = con.cursor()
         cur.execute(f"CREATE TABLE IF NOT EXISTS {TABLE_NAME} ({TABLE_SIGNATURE})")
-        cur.execute(f"DELETE FROM {TABLE_NAME} WHERE thread_id = (?)", (thread.id,))
+        cur.execute(f"DELETE FROM {TABLE_NAME} WHERE thread_id = (?)", (thread_id,))
 
 async def run_on_loop():
     with sqlite3.Connection('thread_id_list.sqlite') as con:
@@ -56,8 +56,8 @@ async def run_on_loop():
 
             # Fail if guild isn't found
             except discord.errors.Forbidden:
-                logger.warning(f"Failed to fetch guild {column['guild_id']}, removing thread from archive prevention list")
-                remove_thread_from_archive_prevention(thread)
+                logger.warning(f"Failed to fetch guild {column['guild_id']}, removing thread {column['thread_id']} from archive prevention list")
+                remove_thread_from_archive_prevention(column['thread_id'])
                 return
 
             try:
@@ -71,19 +71,19 @@ async def run_on_loop():
             # Fail if thread isn't found
             except discord.errors.Forbidden or discord.errors.NotFound:
                 logger.warning(f"Failed to fetch thread {column['thread_id']}, removing from archive prevention list")
-                remove_thread_from_archive_prevention(thread)
+                remove_thread_from_archive_prevention(thread.id)
                 return
 
             # Fail if thread is somehow not a thread
             if not isinstance(thread, discord.Thread):
                 logger.warning(f"Thread {column['thread_id']} is not a thread, removing from archive prevention list")
-                remove_thread_from_archive_prevention(thread)
+                remove_thread_from_archive_prevention(thread.id)
                 return
 
             # Fail if thread is locked. This is almost certainly an intentional action by a user and should be respected
             if thread.locked:
                 logger.info(f"Thread {column['thread_id']} is locked, removing from archive prevention list")
-                remove_thread_from_archive_prevention(thread)
+                remove_thread_from_archive_prevention(thread.id)
                 return
 
             bot.loop.create_task(archive_cycle(thread))
@@ -99,7 +99,7 @@ async def archive_cycle(thread: discord.Thread):
         logger.info(f"Thread {thread.id} successfully archive cycled")
     except discord.errors.Forbidden or discord.errors.NotFound:
         logger.warn(f"Thread {thread.id} could not be archive cycled, removing from archive prevention list")
-        remove_thread_from_archive_prevention(thread)
+        remove_thread_from_archive_prevention(thread.id)
 
 async def unarchive_if_tracked(thread: discord.Thread):
     with sqlite3.Connection('thread_id_list.sqlite') as con:
@@ -111,13 +111,13 @@ async def unarchive_if_tracked(thread: discord.Thread):
             # Fail if thread is somehow not a thread
             if not isinstance(thread, discord.Thread):
                 logger.warning(f"Thread {thread.id} is not a thread, removing from archive prevention list")
-                remove_thread_from_archive_prevention(thread)
+                remove_thread_from_archive_prevention(thread.id)
                 return
 
             # Fail if thread is locked. This is almost certainly an intentional action by a user and should be respected
             if thread.locked:
                 logger.info(f"Thread {thread.id} is locked, removing from archive prevention list")
-                remove_thread_from_archive_prevention(thread)
+                remove_thread_from_archive_prevention(thread.id)
                 return
 
             try:
@@ -126,4 +126,4 @@ async def unarchive_if_tracked(thread: discord.Thread):
 
             except discord.errors.Forbidden or discord.errors.NotFound:
                 logger.warn(f"Thread {thread.id} could not be unarchived, removing from archive prevention list")
-                remove_thread_from_archive_prevention(thread)
+                remove_thread_from_archive_prevention(thread.id)
