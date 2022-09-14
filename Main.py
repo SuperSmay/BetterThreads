@@ -14,7 +14,7 @@ logging.basicConfig()
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
-tokenFile = open(pathlib.Path('token'), 'r')
+tokenFile = open(pathlib.Path('dev_token'), 'r')
 TOKEN = tokenFile.read()
 
 
@@ -62,9 +62,9 @@ async def allow_autoarchive(ctx: discord.ApplicationContext, thread: discord.Opt
         await ctx.respond(f"{thread} is not a thread!")
         return
 
-    ThreadActions.remove_thread_from_archive_prevention(thread=thread)
+    ThreadActions.remove_thread_from_archive_prevention(thread_id=thread.id)
 
-    await ctx.respond('`{thread.name} will auto archive normally`')
+    await ctx.respond(f'`{thread.name} will auto archive normally`')
 
 @tasks.loop(seconds=3000)  # Run a bit before every hour
 async def thread_archive_prevention():

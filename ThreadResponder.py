@@ -80,7 +80,7 @@ class ThreadResponder(commands.Cog):
 
                 await interaction.response.send_message(content='`This thread will auto archive normally`', delete_after=5)
                 if isinstance(interaction.channel, discord.Thread):
-                    ThreadActions.add_thread_to_archive_prevention(thread=interaction.channel)
+                    ThreadActions.remove_thread_from_archive_prevention(thread_id=interaction.channel.id)
 
         
 
