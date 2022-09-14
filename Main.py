@@ -14,7 +14,7 @@ logging.basicConfig()
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
-tokenFile = open(pathlib.Path('dev_token'), 'r')
+tokenFile = open(pathlib.Path('token'), 'r')
 TOKEN = tokenFile.read()
 
 
